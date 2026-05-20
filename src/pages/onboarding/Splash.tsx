@@ -21,6 +21,7 @@ const RED = "#DC2626";
 export default function Splash() {
   const nav = useNavigate();
   const [exiting, setExiting] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const handleStart = () => {
     setExiting(true);
@@ -36,113 +37,144 @@ export default function Splash() {
           transition={{ duration: 0.35 }}
           className="fixed inset-0 z-50 flex flex-col items-center justify-between overflow-hidden bg-black px-6 py-10 safe-top safe-bottom"
         >
+          {/* Preload — invisible until decoded. Drives isLoaded. */}
+          <img
+            src={helmet}
+            alt=""
+            aria-hidden
+            onLoad={() => setIsLoaded(true)}
+            className="hidden"
+          />
+
           {/* Spacer top */}
           <div className="flex-1" />
 
           {/* Brand lockup: helmet + wordmark */}
           <div className="flex flex-1 items-center justify-center">
             <div className="flex items-center">
+              {isLoaded && (
+                <>
               {/* Helmet — zoom in, then slide left */}
               <motion.div
-                initial={{ scale: 0.3, opacity: 0, x: 0 }}
+                initial={{ scale: 0, opacity: 0, x: 0 }}
                 animate={{
-                  scale: [0.3, 1.15, 1, 1],
+                  scale: [0, 1, 1, 1],
                   opacity: [0, 1, 1, 1],
-                  x: [0, 0, 0, -4],
+                  x: [0, 0, -8, -8],
                 }}
                 transition={{
-                  duration: 1.4,
-                  times: [0, 0.55, 0.7, 1],
-                  ease: "easeOut",
+                  duration: 2.5,
+                  times: [0, 0.6, 1, 1],
+                  ease: [0.16, 1, 0.3, 1],
                 }}
                 className="relative shrink-0"
               >
-                {/* Pulsing red glow */}
+                {/* Breathing red glow — starts after slide settles (2.5s) */}
                 <motion.div
                   aria-hidden
                   className="absolute inset-0 -z-10 rounded-full blur-3xl"
                   style={{ background: RED }}
-                  initial={{ opacity: 0, scale: 0.6 }}
-                  animate={{
-                    opacity: [0, 0.55, 0.4, 0.5, 0.4],
-                    scale: [0.6, 1.15, 1.0, 1.1, 1.0],
-                  }}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: [0.3, 0.6, 0.3], scale: [0.9, 1.15, 0.9] }}
                   transition={{
-                    duration: 2.4,
-                    times: [0, 0.4, 0.6, 0.8, 1],
+                    delay: 2.5,
+                    duration: 2.8,
                     ease: "easeInOut",
                     repeat: Infinity,
-                    repeatType: "mirror",
                   }}
                 />
                 <img
                   src={helmet}
                   alt="Aryzen Arena"
-                  className="h-28 w-28 object-contain drop-shadow-[0_0_24px_rgba(220,38,38,0.55)]"
+                  className="h-56 w-56 object-contain drop-shadow-[0_0_32px_rgba(220,38,38,0.6)]"
                   draggable={false}
                 />
               </motion.div>
 
-              {/* Wordmark — uncovered by the helmet via width reveal */}
+              {/* Wordmark — unveiled by the helmet's slide */}
               <motion.div
-                initial={{ width: 0, opacity: 0 }}
-                animate={{ width: "auto", opacity: 1 }}
+                initial={{ width: 0 }}
+                animate={{ width: "auto" }}
                 transition={{
-                  width: { delay: 1.25, duration: 0.55, ease: [0.22, 1, 0.36, 1] },
-                  opacity: { delay: 1.3, duration: 0.4 },
+                  delay: 1.5,
+                  duration: 1.0,
+                  ease: [0.16, 1, 0.3, 1],
                 }}
                 className="overflow-hidden whitespace-nowrap"
               >
                 <div className="pl-3 leading-none">
                   <div
-                    className="text-4xl font-black tracking-tight"
-                    style={{ color: RED }}
+                    className="text-7xl tracking-tight"
+                    style={{ color: RED, fontFamily: "'Bebas Neue', sans-serif" }}
                   >
                     ARYZEN
                   </div>
-                  <div className="mt-1 text-lg font-light tracking-[0.35em] text-white/90">
+                  <div
+                    className="mt-1 text-xl tracking-[0.4em] text-white/90"
+                    style={{ fontFamily: "'Bebas Neue', sans-serif" }}
+                  >
                     ARENA
                   </div>
                 </div>
               </motion.div>
+                </>
+              )}
             </div>
           </div>
 
           {/* Supporting copy */}
           <div className="flex flex-1 flex-col items-center justify-start gap-2 pt-2 text-center">
-            <motion.p
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.9, duration: 0.45 }}
-              className="text-base font-semibold text-white"
-            >
-              Real Tournaments. Real Money.
-            </motion.p>
-            <motion.p
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 2.1, duration: 0.45 }}
-              className="text-xs font-medium text-white/60"
-            >
-              🇮🇳 Made by Gamers, for Gamers
-            </motion.p>
+            {isLoaded && (
+              <>
+                <motion.p
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 2.8, duration: 0.45 }}
+                  className="font-sans text-base font-semibold text-white"
+                >
+                  Real Tournaments. Real Money.
+                </motion.p>
+                <motion.p
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 3.0, duration: 0.45 }}
+                  className="font-sans text-xs font-medium text-white/60"
+                >
+                  🇮🇳 Made by Gamers, for Gamers
+                </motion.p>
+              </>
+            )}
           </div>
 
           {/* CTA */}
-          <motion.div
-            initial={{ y: 80, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 2.35, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full"
-          >
-            <button
-              onClick={handleStart}
-              className="press w-full rounded-2xl py-4 text-base font-bold text-white shadow-[0_10px_30px_-10px_rgba(220,38,38,0.7)]"
-              style={{ backgroundColor: RED }}
+          {isLoaded && (
+            <motion.div
+              initial={{ y: 80, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 3.4, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full"
             >
-              Get Started
-            </button>
-          </motion.div>
+              <button
+                onClick={handleStart}
+                className="press relative w-full overflow-hidden rounded-2xl border border-white/10 py-4 text-base font-bold tracking-wide text-white shadow-[0_0_0_1px_rgba(220,38,38,0.4),0_10px_40px_-8px_rgba(220,38,38,0.7),inset_0_1px_0_rgba(255,255,255,0.18)]"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(180deg, #ef4444 0%, #DC2626 55%, #991b1b 100%)",
+                }}
+              >
+                <span className="relative z-10">Get Started</span>
+                {/* Top gloss highlight */}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-2xl"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(180deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 100%)",
+                  }}
+                />
+              </button>
+            </motion.div>
+          )}
         </motion.div>
       )}
     </AnimatePresence>

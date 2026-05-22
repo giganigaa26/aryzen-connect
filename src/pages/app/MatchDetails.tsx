@@ -19,6 +19,7 @@ import { JoinButton } from "@/components/JoinButton";
 
 import { SlotGrid } from "@/components/SlotGrid";
 import { CountdownRing } from "@/components/CountdownRing";
+import { formatExactStart } from "@/components/UpcomingMatchBar";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -63,6 +64,8 @@ export default function MatchDetails() {
   const startDate = new Date(match.date);
   const startsIn = relTime(startDate.getTime() - Date.now());
   const isLive = startsIn === "Live now";
+  // Exact, RPC-loaded start time — preferred over relative countdown.
+  const exactStart = formatExactStart(startDate);
   const prizePool = prize?.totalPool ?? match.entryFee * match.slotsTotal;
   const spotsLeft = match.slotsTotal - match.slotsFilled;
   const pct = Math.round((match.slotsFilled / match.slotsTotal) * 100);
@@ -113,14 +116,14 @@ export default function MatchDetails() {
           <div className="flex gap-3 p-4">
             <div className="min-w-0 flex-1 flex flex-col">
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className="px-2 py-0.5 rounded-md border border-border text-[10px] font-bold uppercase tracking-wide">
+                <span className="inline-flex items-center h-6 px-2 rounded-md border border-border text-[10px] font-bold uppercase tracking-wide">
                   {match.mode}
                 </span>
-                <span className="px-2 py-0.5 rounded-md border border-border text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                <span className="inline-flex items-center h-6 px-2 rounded-md border border-border text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
                   {match.slotsTotal} slots
                 </span>
                 <span className={cn(
-                  "inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide",
+                  "inline-flex items-center gap-1 h-6 px-2 rounded-md text-[10px] font-bold uppercase tracking-wide tabular-nums",
                   match.status === "declaring_result"
                     ? "bg-warning/15 text-warning animate-pulse"
                     : isLive
@@ -140,7 +143,7 @@ export default function MatchDetails() {
                   ) : (
                     <>
                       <Clock size={10} />
-                      {startsIn.replace("in ", "")}
+                      {exactStart}
                     </>
                   )}
                 </span>
@@ -190,12 +193,18 @@ export default function MatchDetails() {
 
           {/* Slot fill */}
           <div className="px-4 pb-3">
-            <div className="flex items-center justify-between text-[11px] mb-1.5">
+            <div className="flex items-baseline justify-between text-[11px] mb-1.5">
               <span className="text-muted-foreground inline-flex items-center gap-1 font-medium">
-                <Users size={12} /> {spotsLeft} {spotsLeft === 1 ? "spot" : "spots"} left
+                <Users size={12} />
+                <span className="tabular-nums">
+                  <span className="font-bold text-foreground">{match.slotsFilled}</span>
+                  <span className="opacity-70">/{match.slotsTotal}</span>
+                </span>
+                <span className="opacity-70">·</span>
+                <span className="tabular-nums">{spotsLeft} {spotsLeft === 1 ? "spot" : "spots"} left</span>
               </span>
               <span className="font-bold uppercase tracking-wide text-[10px] text-muted-foreground tabular-nums">
-                {match.slotsFilled}/{match.slotsTotal}
+                {pct}%
               </span>
             </div>
             <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
@@ -565,8 +574,8 @@ function TabBtn({ active, onClick, icon, label }: { active: boolean; onClick: ()
     <button
       onClick={onClick}
       className={cn(
-        "relative py-3 flex items-center justify-center gap-1.5 text-xs font-semibold transition-colors duration-150 active:scale-[0.97]",
-        active ? "text-primary" : "text-muted-foreground"
+        "relative py-3 flex items-center justify-center gap-1.5 text-xs transition-colors duration-150 active:scale-[0.97]",
+        active ? "text-primary font-extrabold" : "text-muted-foreground font-semibold"
       )}
     >
       {icon} {label}

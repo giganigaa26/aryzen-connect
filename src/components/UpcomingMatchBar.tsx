@@ -192,18 +192,23 @@ export function UpcomingMatchBar() {
     <div className="w-full flex items-center bg-primary text-primary-foreground">
       <button
         onClick={goMatch}
-        className={cn("press flex-1 flex items-center justify-center gap-2 text-[12px] font-semibold py-1.5 px-3 min-w-0")}
+        className={cn(
+          "press flex-1 flex items-center justify-center gap-2 text-[12px] font-semibold py-2 px-3 min-w-0",
+        )}
       >
-        <Clock size={12} className="shrink-0" />
+        <Clock size={12} className="shrink-0 opacity-90" />
         <span className="truncate">
           <span className="font-extrabold">{match.name}</span>
-          <span className="opacity-90"> · Starts in </span>
-          <span className="font-extrabold tabular-nums">{formatCountdown(ms)}</span>
+          <span className="opacity-75 px-1.5">•</span>
+          <span className="opacity-90">Starts at </span>
+          <span className="font-extrabold tabular-nums">
+            {formatExactStart(new Date(match.startTime), new Date(now))}
+          </span>
         </span>
       </button>
       <button
         onClick={() => setDismissedId(match.id)}
-        className="press h-7 w-7 mr-1 rounded-full flex items-center justify-center text-xs font-bold opacity-80 hover:opacity-100"
+        className="press h-9 w-9 mr-1 rounded-full flex items-center justify-center text-base font-bold opacity-80 hover:opacity-100"
         aria-label="Dismiss"
       >
         ×
@@ -239,6 +244,24 @@ function formatCountdown(ms: number): string {
   if (d > 0) return `${d}d ${h}h`;
   if (h > 0) return `${h}h ${m}m`;
   return `${m}m`;
+}
+/**
+ * Exact, locale-formatted start time loaded straight from the match RPC.
+ * Same day → "9:30 PM", next day → "Tomorrow 9:30 PM", else "Mon 9:30 PM".
+ */
+export function formatExactStart(date: Date, now: Date = new Date()): string {
+  const time = date.toLocaleTimeString("en-IN", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+  const sameDay = date.toDateString() === now.toDateString();
+  if (sameDay) return time;
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  if (date.toDateString() === tomorrow.toDateString()) return `Tomorrow ${time}`;
+  const day = date.toLocaleDateString("en-IN", { weekday: "short" });
+  return `${day} ${time}`;
 }
 function formatSeconds(ms: number): string {
   const total = Math.max(0, Math.floor(ms / 1000));
